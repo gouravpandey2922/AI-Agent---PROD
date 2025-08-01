@@ -15,12 +15,27 @@
 
 # Document files (PDFs and Excel files)
 *.pdf
+*.csv
 *.xlsx
 *.xls
 *.docx
 *.doc
 *.pptx
 *.ppt
+*.zip
+
+# Large files and directories
+WILL/
+WILL.zip
+*Encyclopedia*
+*Handbook*
+*Pharmaceutics*
+*Biotechnology*
+
+# Environment and secret files
+WILL/env
+*.env
+env
 
 # Python
 __pycache__/

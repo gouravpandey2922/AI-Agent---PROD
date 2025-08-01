@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional
+import os
 from openai import OpenAI
 from database.vector_db import VectorDatabaseManager
 from database.graph_db import GraphDatabaseManager
@@ -61,48 +62,98 @@ class BaseAgent(ABC):
         
     def process_query_with_sources(self, query: str, context: str = "", 
                                  response_type: str = "general") -> Dict[str, Any]:
-        """Process a query and return results with detailed source information"""
+        """Process a query and return results with detailed source information and document citations"""
         
         # Search knowledge base
-        search_results = self.search_knowledge_base(query, top_k=5)
+        search_results = self.search_knowledge_base(query, top_k=8)
         
         # Extract context from search results
         context_parts = []
         sources = []
+        document_citations = []
         
-        for result in search_results:
-            # Add to context
-            if 'metadata' in result and 'content' in result['metadata']:
-                context_parts.append(result['metadata']['content'])
+        for i, result in enumerate(search_results, 1):
+            metadata = result.get('metadata', {})
             
-            # Create detailed source entry
+            # Add to context
+            if 'content' in metadata:
+                context_parts.append(f"[Document {i}]: {metadata['content']}")
+            
+            # Create detailed source entry with enhanced metadata
             source = {
-                'title': result.get('metadata', {}).get('title', 'Unknown Document'),
+                'title': metadata.get('title', 'Unknown Document'),
                 'score': result.get('score', 0),
                 'agent': self.agent_name,
-                'content': result.get('metadata', {}).get('content', '')[:500] + '...' if result.get('metadata', {}).get('content') else '',
+                'content': metadata.get('content', '')[:500] + '...' if metadata.get('content') else '',
+                'document_id': f"DOC_{i:03d}",
                 'metadata': {
-                    'file_path': result.get('metadata', {}).get('file_path', ''),
-                    'source_type': result.get('metadata', {}).get('source_type', ''),
-                    'date': result.get('metadata', {}).get('date', ''),
-                    'company': result.get('metadata', {}).get('company', ''),
-                    'category': result.get('metadata', {}).get('category', '')
+                    'file_path': metadata.get('file_path', ''),
+                    'file_name': self._extract_filename(metadata.get('file_path', '')),
+                    'file_extension': self._get_file_extension(metadata.get('file_path', '')),
+                    'source_type': metadata.get('source_type', ''),
+                    'date': metadata.get('date', ''),
+                    'company': metadata.get('company', ''),
+                    'category': metadata.get('category', ''),
+                    'page_number': metadata.get('page_number', ''),
+                    'section': metadata.get('section', ''),
+                    'relevance_score': result.get('score', 0)
                 }
             }
             sources.append(source)
+            
+            # Create citation entry
+            citation = {
+                'document_id': f"DOC_{i:03d}",
+                'title': metadata.get('title', 'Unknown Document'),
+                'file_name': self._extract_filename(metadata.get('file_path', '')),
+                'file_extension': self._get_file_extension(metadata.get('file_path', '')),
+                'relevance_score': result.get('score', 0),
+                'agent': self.agent_name
+            }
+            document_citations.append(citation)
         
-        # Combine context
+        # Combine context with document references
         combined_context = "\n\n".join(context_parts) if context_parts else context
         
-        # Generate response
-        response_text = self.generate_response(query, combined_context, response_type)
+        # Generate response with citation instructions
+        citation_instructions = self._generate_citation_instructions(document_citations)
+        enhanced_context = f"{combined_context}\n\n{citation_instructions}"
+        
+        response_text = self.generate_response(query, enhanced_context, response_type)
         
         return {
             'response': response_text,
             'sources': sources,
+            'document_citations': document_citations,
             'context': combined_context,
-            'agent': self.agent_name
+            'agent': self.agent_name,
+            'total_documents': len(sources)
         }
+    
+    def _extract_filename(self, file_path: str) -> str:
+        """Extract filename from file path"""
+        if not file_path:
+            return "Unknown"
+        return os.path.basename(file_path)
+    
+    def _get_file_extension(self, file_path: str) -> str:
+        """Get file extension from file path"""
+        if not file_path:
+            return "Unknown"
+        return os.path.splitext(file_path)[1].lower()
+    
+    def _generate_citation_instructions(self, citations: List[Dict]) -> str:
+        """Generate citation instructions for the AI model"""
+        if not citations:
+            return ""
+        
+        citation_text = "\n\nDOCUMENT CITATIONS:\n"
+        for citation in citations:
+            citation_text += f"- {citation['document_id']}: {citation['title']} ({citation['file_name']})\n"
+        
+        citation_text += "\nINSTRUCTIONS: When referencing information in your response, cite the specific document using the format [DOC_XXX] where XXX is the document ID. Always provide detailed, comprehensive responses with proper document citations."
+        
+        return citation_text
         
     def extract_entities(self, text: str) -> Dict[str, List[str]]:
         """Extract entities from text using OpenAI"""

@@ -38,6 +38,11 @@ AGENT_CONFIGS = {
         "temperature": 0.1,
         "max_tokens": 2000
     },
+    "smart_orchestrator": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.2,
+        "max_tokens": 3000
+    },
     "web_scraper": {
         "model": "gpt-4o-mini", 
         "temperature": 0.1,
