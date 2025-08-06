@@ -25,7 +25,7 @@ class DataProcessor:
         return results
         
     def _process_agent_knowledge_base(self, agent_name: str, base_path: str, vector_db_manager) -> int:
-        """Process a specific agent's knowledge base"""
+        """Process a specific agent's knowledge base with chunking support"""
         processed_count = 0
         
         for root, dirs, files in os.walk(base_path):
@@ -35,27 +35,10 @@ class DataProcessor:
                 
                 if file_ext in self.supported_extensions:
                     try:
-                        if file_ext == '.pdf':
-                            content = self._extract_pdf_content(file_path)
-                        elif file_ext == '.csv':
-                            content = self._extract_csv_content(file_path)
-                        elif file_ext == '.docx':
-                            content = self._extract_docx_content(file_path)
-                        elif file_ext == '.txt':
-                            content = self._extract_txt_content(file_path)
-                        else:
-                            continue
-                            
-                        if content:
-                            # Extract metadata
-                            metadata = self._extract_metadata(file_path, content, agent_name)
-                            
-                            # Upload to vector database
-                            doc_id = vector_db_manager.upsert_document(agent_name, content, metadata)
-                            
-                            processed_count += 1
-                            print(f"Processed: {file} -> {doc_id}")
-                            
+                        # Use chunking to handle large documents
+                        documents_processed = self._process_file_with_chunking(file_path, agent_name, vector_db_manager)
+                        processed_count += documents_processed
+                        
                     except Exception as e:
                         print(f"Error processing {file}: {str(e)}")
                         
@@ -87,9 +70,9 @@ class DataProcessor:
             # Add column names
             content_parts.append("Columns: " + ", ".join(df.columns.tolist()))
             
-            # Add first few rows as sample
-            sample_rows = df.head(10).to_string(index=False)
-            content_parts.append(f"Sample Data:\n{sample_rows}")
+            # Add ALL rows (not just first 10) for complete data ingestion
+            all_rows = df.to_string(index=False)
+            content_parts.append(f"Complete Data:\n{all_rows}")
             
             # Add summary statistics
             if len(df) > 0:
@@ -283,4 +266,84 @@ class DataProcessor:
             if topic.lower() in text.lower():
                 found_topics.append(topic)
                 
-        return found_topics 
+        return found_topics
+    
+    def _extract_content_from_file(self, file_path: str, agent_name: str) -> str:
+        """Extract content from a file based on its type"""
+        file_extension = os.path.splitext(file_path)[1].lower()
+        
+        if file_extension == '.pdf':
+            return self._extract_pdf_content(file_path)
+        elif file_extension == '.csv':
+            return self._extract_csv_content(file_path)
+        elif file_extension == '.txt':
+            return self._extract_txt_content(file_path)
+        elif file_extension == '.docx':
+            return self._extract_docx_content(file_path)
+        else:
+            raise ValueError(f"Unsupported file type: {file_extension}")
+    
+    def _chunk_content(self, content: str, max_tokens: int = 6000) -> List[str]:
+        """Chunk content into smaller pieces to stay within token limits"""
+        # Rough estimation: 1 token ≈ 4 characters
+        max_chars = max_tokens * 4
+        
+        if len(content) <= max_chars:
+            return [content]
+        
+        chunks = []
+        current_chunk = ""
+        sentences = content.split('. ')
+        
+        for sentence in sentences:
+            # If adding this sentence would exceed the limit, start a new chunk
+            if len(current_chunk + sentence) > max_chars and current_chunk:
+                chunks.append(current_chunk.strip())
+                current_chunk = sentence + ". "
+            else:
+                current_chunk += sentence + ". "
+        
+        # Add the last chunk if it has content
+        if current_chunk.strip():
+            chunks.append(current_chunk.strip())
+        
+        return chunks
+    
+    def _process_file_with_chunking(self, file_path: str, agent_name: str, vector_db_manager) -> int:
+        """Process a file with chunking to handle large documents"""
+        try:
+            # Extract content
+            content = self._extract_content_from_file(file_path, agent_name)
+            
+            if not content:
+                return 0
+            
+            # Chunk the content if it's too large
+            chunks = self._chunk_content(content)
+            
+            documents_processed = 0
+            
+            for i, chunk in enumerate(chunks):
+                # Create metadata for this chunk
+                metadata = self._extract_metadata(file_path, chunk, agent_name)
+                
+                # Add chunk information to metadata
+                metadata["chunk_index"] = i
+                metadata["total_chunks"] = len(chunks)
+                metadata["chunk_size"] = len(chunk)
+                
+                # Update title to indicate it's a chunk
+                if len(chunks) > 1:
+                    metadata["title"] = f"{metadata['title']} (Part {i+1}/{len(chunks)})"
+                
+                # Upload chunk to vector database
+                doc_id = vector_db_manager.upsert_document(agent_name, chunk, metadata)
+                documents_processed += 1
+                
+                print(f"Processed chunk {i+1}/{len(chunks)} of {os.path.basename(file_path)} -> {doc_id}")
+            
+            return documents_processed
+            
+        except Exception as e:
+            print(f"Error processing file {file_path}: {str(e)}")
+            return 0 

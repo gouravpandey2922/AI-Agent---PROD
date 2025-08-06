@@ -167,6 +167,33 @@ class VectorDatabaseManager:
             raise ValueError(f"Unknown agent: {agent_name}")
             
         return self.indexes[agent_name].describe_index_stats()
+    
+    def list_documents(self, agent_name: str, limit: int = 100) -> List[Dict]:
+        """List all documents in an agent's index"""
+        if agent_name not in self.indexes:
+            raise ValueError(f"Unknown agent: {agent_name}")
+            
+        namespace = PINECONE_NAMESPACES.get(agent_name, agent_name)
+        
+        # Query with a dummy vector to get all documents
+        dummy_vector = [0.0] * 1536  # OpenAI embedding dimension
+        
+        response = self.indexes[agent_name].query(
+            vector=dummy_vector,
+            top_k=limit,
+            include_metadata=True,
+            namespace=namespace
+        )
+        
+        documents = []
+        for match in response.matches:
+            documents.append({
+                "id": match.id,
+                "score": match.score,
+                "metadata": match.metadata
+            })
+        
+        return documents
         
     def semantic_search_with_context(self, query: str, agent_names: List[str] = None, 
                                    top_k_per_agent: int = 3) -> str:

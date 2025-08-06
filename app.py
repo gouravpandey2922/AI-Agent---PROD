@@ -202,7 +202,14 @@ class AuditIntelligenceApp:
         """Create the main content area"""
         
         # Create tabs for different functionalities
-        tab1, tab2, tab3, tab4 = st.tabs(["🤖 Smart Audit AI", "📋 Checklist Generator", "📝 Observation Logger", "📊 Audit Reports"])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+            "🤖 Smart Audit AI", 
+            "📋 Checklist Generator", 
+            "📝 Observation Logger", 
+            "📊 Audit Reports",
+            "📚 Knowledge Base Management",
+            "⚙️ Fine Tune Agents"
+        ])
         
         with tab1:
             self._create_smart_audit_tab()
@@ -215,6 +222,12 @@ class AuditIntelligenceApp:
         
         with tab4:
             self._create_audit_reports_tab()
+            
+        with tab5:
+            self._create_knowledge_base_management_tab()
+            
+        with tab6:
+            self._create_fine_tune_agents_tab()
     
     def _create_smart_audit_tab(self):
         """Create the Smart Audit AI tab"""
@@ -747,6 +760,222 @@ class AuditIntelligenceApp:
         
         with col3:
             st.metric("Sources Found", len(response.get('sources', [])))
+
+    def _create_knowledge_base_management_tab(self):
+        """Create the Knowledge Base Management tab"""
+        st.markdown("### 📚 Knowledge Base Management")
+        st.markdown("Manage documents in each agent's knowledge base.")
+        
+        # Agent selection
+        agent_name = st.selectbox(
+            "Select Agent",
+            ["web_scraper", "internal_audit", "external_conference", "quality_systems", "sop"],
+            format_func=lambda x: x.replace("_", " ").title()
+        )
+        
+        # Display current documents for selected agent
+        st.markdown(f"#### Current Documents for {agent_name.replace('_', ' ').title()}")
+        
+        try:
+            # Get documents from vector database
+            documents = self._get_agent_documents(agent_name)
+            
+            if documents:
+                # Create a DataFrame for better display
+                doc_data = []
+                for doc in documents:
+                    doc_data.append({
+                        "Document ID": doc.get("id", "Unknown"),
+                        "Title": doc.get("metadata", {}).get("title", "Unknown"),
+                        "File Type": doc.get("metadata", {}).get("file_type", "Unknown"),
+                        "File Size": f"{doc.get('metadata', {}).get('file_size', 0) / 1024:.1f} KB",
+                        "Upload Date": doc.get("metadata", {}).get("processed_date", "Unknown")
+                    })
+                
+                df = pd.DataFrame(doc_data)
+                st.dataframe(df, use_container_width=True)
+                
+                # Delete document functionality
+                st.markdown("#### Delete Document")
+                doc_to_delete = st.selectbox(
+                    "Select document to delete",
+                    [doc.get("id", "Unknown") for doc in documents],
+                    format_func=lambda x: next((doc.get("metadata", {}).get("title", "Unknown") for doc in documents if doc.get("id") == x), "Unknown")
+                )
+                
+                if st.button("Delete Document", type="secondary"):
+                    if self._delete_document(agent_name, doc_to_delete):
+                        st.success("Document deleted successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to delete document.")
+            else:
+                st.info("No documents found for this agent.")
+                
+        except Exception as e:
+            st.error(f"Error loading documents: {str(e)}")
+        
+        # Upload new document
+        st.markdown("---")
+        st.markdown("#### Upload New Document")
+        
+        uploaded_file = st.file_uploader(
+            "Choose a file",
+            type=['pdf', 'csv', 'txt', 'docx'],
+            key=f"upload_{agent_name}"
+        )
+        
+        if uploaded_file is not None:
+            # Display file info
+            st.write(f"**File:** {uploaded_file.name}")
+            st.write(f"**Size:** {uploaded_file.size / 1024:.1f} KB")
+            st.write(f"**Type:** {uploaded_file.type}")
+            
+            # Upload button
+            if st.button("Upload to Knowledge Base", type="primary"):
+                if self._upload_document_to_agent(agent_name, uploaded_file):
+                    st.success("Document uploaded successfully!")
+                    st.rerun()
+                else:
+                    st.error("Failed to upload document.")
+
+    def _create_fine_tune_agents_tab(self):
+        """Create the Fine Tune Agents tab"""
+        st.markdown("### ⚙️ Fine Tune Agents")
+        st.markdown("Customize system prompts for each agent.")
+        
+        # Agent selection
+        agent_name = st.selectbox(
+            "Select Agent to Fine Tune",
+            ["web_scraper", "internal_audit", "external_conference", "quality_systems", "sop"],
+            format_func=lambda x: x.replace("_", " ").title()
+        )
+        
+        # Get current system prompt
+        current_prompt = self._get_agent_system_prompt(agent_name)
+        
+        # Display current prompt
+        st.markdown("#### Current System Prompt")
+        st.text_area(
+            "Current Prompt",
+            value=current_prompt,
+            height=200,
+            disabled=True,
+            key="current_prompt_display"
+        )
+        
+        # Edit prompt
+        st.markdown("#### Edit System Prompt")
+        new_prompt = st.text_area(
+            "New System Prompt",
+            value=current_prompt,
+            height=300,
+            key="new_prompt_editor"
+        )
+        
+        # Save button
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col2:
+            if st.button("Save Changes", type="primary"):
+                if self._update_agent_system_prompt(agent_name, new_prompt):
+                    st.success("System prompt updated successfully!")
+                else:
+                    st.error("Failed to update system prompt.")
+        
+        # Reset to default
+        with col3:
+            if st.button("Reset to Default", type="secondary"):
+                default_prompt = self._get_default_system_prompt(agent_name)
+                if self._update_agent_system_prompt(agent_name, default_prompt):
+                    st.success("Reset to default prompt!")
+                    st.rerun()
+                else:
+                    st.error("Failed to reset prompt.")
+
+    def _get_agent_documents(self, agent_name: str) -> List[Dict]:
+        """Get all documents for a specific agent"""
+        try:
+            return self.vector_db.list_documents(agent_name, limit=100)
+        except Exception as e:
+            st.error(f"Error getting documents: {str(e)}")
+            return []
+
+    def _delete_document(self, agent_name: str, doc_id: str) -> bool:
+        """Delete a document from an agent's knowledge base"""
+        try:
+            self.vector_db.delete_document(agent_name, doc_id)
+            return True
+        except Exception as e:
+            st.error(f"Error deleting document: {str(e)}")
+            return False
+
+    def _upload_document_to_agent(self, agent_name: str, uploaded_file) -> bool:
+        """Upload a document to an agent's knowledge base with chunking support"""
+        try:
+            # Save uploaded file temporarily
+            import tempfile
+            import os
+            
+            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
+                tmp_file.write(uploaded_file.getvalue())
+                tmp_path = tmp_file.name
+            
+            # Process and upload the document with chunking
+            documents_processed = self.data_processor._process_file_with_chunking(tmp_path, agent_name, self.vector_db)
+            
+            # Clean up temporary file
+            os.unlink(tmp_path)
+            
+            if documents_processed > 0:
+                return True
+            else:
+                st.error("No content could be extracted from the document")
+                return False
+                
+        except Exception as e:
+            st.error(f"Error uploading document: {str(e)}")
+            return False
+
+    def _get_agent_system_prompt(self, agent_name: str) -> str:
+        """Get the current system prompt for an agent"""
+        try:
+            # Load prompts from JSON file
+            with open('agent_prompts.json', 'r') as f:
+                prompts = json.load(f)
+            return prompts.get(agent_name, "System prompt not found.")
+        except Exception as e:
+            st.error(f"Error getting system prompt: {str(e)}")
+            return "Error loading system prompt"
+
+    def _update_agent_system_prompt(self, agent_name: str, new_prompt: str) -> bool:
+        """Update the system prompt for an agent"""
+        try:
+            # Load current prompts
+            with open('agent_prompts.json', 'r') as f:
+                prompts = json.load(f)
+            
+            # Update the specific agent's prompt
+            prompts[agent_name] = new_prompt
+            
+            # Save back to file
+            with open('agent_prompts.json', 'w') as f:
+                json.dump(prompts, f, indent=4)
+            
+            return True
+        except Exception as e:
+            st.error(f"Error updating system prompt: {str(e)}")
+            return False
+
+    def _get_default_system_prompt(self, agent_name: str) -> str:
+        """Get the default system prompt for an agent"""
+        try:
+            # Load default prompts from the default file
+            with open('default_agent_prompts.json', 'r') as f:
+                prompts = json.load(f)
+            return prompts.get(agent_name, "Default system prompt not available.")
+        except Exception as e:
+            st.error(f"Error loading default prompt: {str(e)}")
+            return "Default system prompt not available."
 
 def main():
     app = AuditIntelligenceApp()
