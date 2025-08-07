@@ -62,7 +62,7 @@ Response Synthesis → Risk Prioritization → Formatted Output
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.11+
 - OpenAI API key
 - Pinecone API key (for vector database)
 - Neo4j (optional, for graph database)
@@ -359,7 +359,7 @@ For technical support or questions:
 
 ## 🔄 Version History
 
-### v2.0 (Enhanced)
+### v2.0 (Current)
 - Smart Orchestrator Agent implementation
 - Risk-based prioritization system
 - Structured observation logging
