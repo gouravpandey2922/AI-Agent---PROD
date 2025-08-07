@@ -70,7 +70,7 @@ class AuditIntelligenceApp:
         
     def run(self):
         st.set_page_config(
-            page_title="Takeda AI Audit Intelligence",
+            page_title="AI Audit Intelligence",
             page_icon="📋",
             layout="wide",
             initial_sidebar_state="expanded"
@@ -144,7 +144,7 @@ class AuditIntelligenceApp:
         """, unsafe_allow_html=True)
         
         # Header
-        st.markdown('<h1 class="main-header">Takeda AI Audit Intelligence</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">AI Audit Intelligence</h1>', unsafe_allow_html=True)
         
         # Sidebar
         self._create_sidebar()
