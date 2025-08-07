@@ -1,85 +1,73 @@
-# 🔍 Audit Intelligence Platform
+# Smart Audit Orchestrator Agent - Enhanced System
 
-A comprehensive multi-agent system for pharmaceutical audit intelligence, combining specialized AI agents with vector and graph databases to provide deep insights into quality systems, compliance, and audit procedures.
+## Overview
 
-## 🏗️ Architecture Overview
+The Smart Audit Orchestrator Agent is a comprehensive AI-powered audit intelligence platform that simulates the knowledge, skills, and behavior of a qualified lead auditor. This enhanced system provides intelligent audit preparation, execution, and reporting capabilities through multiple specialized sub-agents.
 
-The platform consists of 6 specialized AI agents working together through an orchestrator:
+## 🎯 Key Features
 
-### 🤖 Agents
+### 🤖 Smart Audit Orchestrator Agent
+- **Virtual Lead Auditor Simulation**: Mimics qualified auditor expertise with 5+ years GMP experience
+- **Global Regulatory Knowledge**: Comprehensive understanding of FDA, EU GMP, ICH, WHO, and other global regulations
+- **Risk-Based Intelligence**: Dynamic prioritization using 🔥 Priority, ✅ Standard, ⚠️ Watchlist labels
+- **Multi-Agent Orchestration**: Coordinates specialized sub-agents for comprehensive analysis
 
-1. **Orchestrator Agent** - Coordinates all other agents and synthesizes responses
-2. **Web Scraper Agent** - Analyzes due diligence reports and FDA warning letters
-3. **Internal Audit Agent** - Handles audit procedures, checklists, and compliance guidelines
-4. **External Conference Agent** - Processes conference data and industry events with temporal analysis
-5. **Quality Systems Agent** - Manages SNC data and quality events with temporal tracking
-6. **SOP Agent** - Interprets standard operating procedures and creates audit protocols
+### 📋 Intelligent Checklist Generator
+- **Risk-Based Customization**: Tailored checklists based on audit type, product modality, and risk factors
+- **Product Modality Templates**: Specialized templates for sterile manufacturing, oral solids, biotech, laboratory, warehouse, and quality systems
+- **Regulatory Integration**: Built-in regulatory references and compliance requirements
+- **Dynamic Prioritization**: Automatic sorting by risk level and importance
 
-### 🗄️ Data Storage
+### 📝 Structured Observation Logger
+- **Real-Time Logging**: Capture observations during live audits with structured data
+- **Risk Classification**: Critical/Major/Minor classification with evidence tracking
+- **Regulatory References**: Link observations to specific regulations and SOPs
+- **Status Management**: Track observation status and corrective actions
 
-- **Vector Database (Pinecone)** - Semantic search across all knowledge bases
-- **Graph Database (Neo4j)** - Relationship mapping between companies, events, and documents
-- **PostgreSQL** - Structured data storage (optional)
+### 📊 Comprehensive Reporting
+- **Multiple Report Types**: Observation summaries, structured reports, detailed reports, delta analysis
+- **Export Capabilities**: JSON, CSV, and formatted text exports
+- **Analytics Dashboard**: Risk breakdown, trend analysis, and performance metrics
 
-## 🚀 Features
+## 🏗️ System Architecture
 
-### Multi-Agent Coordination
-- Intelligent query routing to relevant agents
-- Cross-agent insights and synthesis
-- Temporal analysis of quality events
-- Company-specific audit planning
+### Core Components
 
-### Knowledge Management
-- PDF processing and text extraction
-- Metadata extraction (companies, dates, topics)
-- Entity relationship mapping
-- Source tracking and references
+1. **Smart Orchestrator Agent** (`agents/smart_orchestrator_agent.py`)
+   - Central coordination hub
+   - Intent recognition and routing
+   - Response synthesis and formatting
+   - Risk-based prioritization
 
-### Output Types
-- **Reports** - Comprehensive analysis and findings
-- **Checklists** - Structured audit questionnaires
-- **Insights** - Trend analysis and patterns
-- **General** - Direct question answering
+2. **Specialized Sub-Agents**
+   - **Web Scraper Agent**: FDA warnings, regulatory updates, due diligence
+   - **Internal Audit Agent**: Audit procedures, compliance guidelines
+   - **External Conference Agent**: Industry events, benchmarking data
+   - **Quality Systems Agent**: Deviations, CAPAs, supplier notifications
+   - **SOP Agent**: Standard operating procedures, audit protocols
 
-## 📁 Project Structure
+3. **Utility Components**
+   - **Audit Logger** (`utils/audit_logger.py`): Structured observation management
+   - **Checklist Generator** (`utils/checklist_generator.py`): Intelligent checklist creation
+   - **Data Processor** (`utils/data_processor.py`): Data processing and analysis
+
+### Data Flow
 
 ```
-takeda_upwork/
-├── agents/                     # AI Agent implementations
-│   ├── base_agent.py          # Base agent class
-│   ├── orchestrator_agent.py  # Main orchestrator
-│   ├── web_scraper_agent.py   # Due diligence analysis
-│   ├── internal_audit_agent.py # Audit procedures
-│   ├── external_conference_agent.py # Conference data
-│   ├── quality_systems_agent.py # SNC and quality events
-│   └── sop_agent.py           # SOP interpretation
-├── database/                   # Database managers
-│   ├── vector_db.py           # Pinecone vector database
-│   └── graph_db.py            # Neo4j graph database
-├── utils/                      # Utilities
-│   └── data_processor.py      # PDF processing and data ingestion
-├── Knowledge Bases/            # Knowledge base folders
-│   ├── Web Scraper Agent/     # Due diligence reports
-│   ├── Internal Audit Agent/  # Audit procedures
-│   ├── External Engagement Conferences DATA/ # Conference data
-│   ├── Company Quality System Agent/ # SNC data
-│   └── Audit SOP Agent/       # SOP documents
-├── config.py                   # Configuration settings
-├── app.py                     # Main Streamlit application
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+User Query → Intent Recognition → Agent Selection → Data Collection → 
+Response Synthesis → Risk Prioritization → Formatted Output
 ```
 
-## 🛠️ Installation
+## 🚀 Getting Started
 
 ### Prerequisites
 
-1. **Python 3.8+**
-2. **Neo4j Database** (local or cloud)
-3. **Pinecone Account** (for vector database)
-4. **OpenAI API Key**
+- Python 3.8+
+- OpenAI API key
+- Pinecone API key (for vector database)
+- Neo4j (optional, for graph database)
 
-### Setup
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -92,206 +80,301 @@ takeda_upwork/
    pip install -r requirements.txt
    ```
 
-3. **Environment Configuration**
-   Create a `.env` file with:
-   ```env
-   OPENAI_API_KEY=your_openai_api_key
-   PINECONE_API_KEY=your_pinecone_api_key
-   NEO4J_URI=bolt://localhost:7687
-   NEO4J_USER=neo4j
-   NEO4J_PASSWORD=your_password
-   RENDER_DB_URL=your_postgresql_url
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your API keys
    ```
 
-4. **Initialize Databases**
-   - Set up Neo4j database
-   - Create Pinecone indexes (automatically handled by the app)
+4. **Run the application**
+   ```bash
+   streamlit run app.py
+   ```
 
-## 🚀 Usage
+## 📖 Usage Guide
 
-### Running the Application
+### Smart Audit AI Tab
 
-```bash
-streamlit run app.py
-```
+Ask complex audit questions in natural language:
 
-### Main Interface
+**Example Queries:**
+- "Generate a checklist for Hovione sterile manufacturing audit"
+- "Provide 360° health status for Boehringer Ingelheim"
+- "What changed since our last audit?"
+- "Create a report from these audit notes"
+- "Show relevant new regulations since last audit"
 
-The application provides four main sections:
+**Supported Intents:**
+- `audit_checklist`: Generate risk-based audit checklists
+- `audit_agenda`: Analyze and enhance audit agendas
+- `audit_report`: Create structured audit reports
+- `delta_analysis`: Analyze changes since last audit
+- `health_assessment`: Provide comprehensive company health status
+- `trend_analysis`: Identify patterns and trends
 
-1. **Chat Interface** - Main query interface with multi-agent responses
-2. **Data Management** - Process knowledge bases and manage databases
-3. **Agent Analysis** - Company-specific analysis and insights
-4. **System Status** - Monitor system health and agent capabilities
+### Checklist Generator Tab
 
-### Example Queries
+Generate comprehensive audit checklists:
 
-- "Create an audit checklist for Hovione"
-- "What are the quality issues for Boehringer Ingelheim?"
-- "Generate a report on FDA compliance trends"
-- "Show me the quality timeline for Thermo Fisher"
-- "What conferences discussed biologics manufacturing?"
+1. **Enter Company Name**: Target company for audit
+2. **Select Audit Type**: Comprehensive, supplier, internal, regulatory, CDMO
+3. **Choose Product Modality**: Sterile manufacturing, oral solid, biotech, laboratory, warehouse, quality systems
+4. **Add Risk Factors**: Specific concerns to focus on
+5. **Generate**: Creates risk-prioritized checklist with evidence requirements
+
+### Observation Logger Tab
+
+Log and manage audit observations:
+
+1. **Fill Observation Form**:
+   - Area: Department or process area
+   - Finding: Description of observation
+   - Risk Level: Critical/Major/Minor
+   - Evidence: Supporting documentation
+   - Reference: Regulatory or SOP reference
+   - Type: Document review, interview, on-site observation, etc.
+
+2. **View Recent Observations**: Browse and manage logged observations
+3. **Status Tracking**: Monitor observation status and corrective actions
+
+### Audit Reports Tab
+
+Generate comprehensive reports:
+
+1. **Select Report Type**:
+   - Observation Summary: Statistical overview
+   - Structured Report: Formatted observation report
+   - Detailed Report: Complete observation details
+   - Delta Analysis: Changes since last audit
+
+2. **Apply Filters**: Filter by company or date range
+3. **Export**: Download reports in various formats
 
 ## 🔧 Configuration
 
-### Agent Configuration
+### Agent Configuration (`config.py`)
 
-Edit `config.py` to customize:
-- Model parameters (temperature, max tokens)
-- Pinecone index names
-- Knowledge base paths
-- Output type preferences
+```python
+AGENT_CONFIGS = {
+    "smart_orchestrator": {
+        "model": "gpt-4o-mini",
+        "temperature": 0.2,
+        "max_tokens": 3000
+    },
+    # ... other agents
+}
+```
 
-### Database Configuration
+### Knowledge Base Paths
 
-- **Pinecone**: Configure indexes for each agent
-- **Neo4j**: Set up constraints and relationship types
-- **PostgreSQL**: Optional for structured data storage
+```python
+KNOWLEDGE_BASE_PATHS = {
+    "web_scraper": "Knowledge Bases/Web Scraper Agent",
+    "internal_audit": "Knowledge Bases/Internal Audit Agent",
+    "external_conference": "Knowledge Bases/External Engagement Conferences DATA",
+    "quality_systems": "Knowledge Bases/Company Quality System Agent",
+    "sop": "Knowledge Bases/Audit SOP Agent"
+}
+```
 
-## 📊 Data Processing
+## 📊 Risk-Based Prioritization
 
-### Knowledge Base Ingestion
+The system uses intelligent risk prioritization:
 
-The system automatically processes:
-- **PDFs** - Text extraction and metadata parsing
-- **CSVs** - Structured data with column analysis
-- **DOCX** - Document content extraction
-- **TXT** - Plain text processing
+### 🔥 Priority (Critical)
+- High-risk areas requiring immediate investigation
+- Regulatory compliance issues
+- Product quality concerns
+- Data integrity problems
 
-### Metadata Extraction
+### ✅ Standard
+- Regular compliance checkpoints
+- Routine audit procedures
+- Well-controlled processes
+- Standard documentation review
 
-For each document, the system extracts:
-- **Companies** - Named entity recognition
-- **Dates** - Temporal information
-- **Topics** - Key themes and subjects
-- **Categories** - Document classification
+### ⚠️ Watchlist
+- Emerging or potential risks
+- Areas requiring monitoring
+- Recent changes or trends
+- Areas of concern for future audits
 
-### Graph Relationships
+## 🎯 Supported Audit Types
 
-The system creates relationships between:
-- Companies ↔ Documents
-- Companies ↔ Events (SNCs, Conferences)
-- Documents ↔ Events
-- Temporal sequences of quality events
+### Supplier Audits
+- Supplier qualification and assessment
+- Supply chain security
+- Quality system evaluation
+- Regulatory compliance verification
 
-## 🤖 Agent Capabilities
+### Internal Audits
+- Site quality system audits
+- Process validation audits
+- GMP compliance audits
+- Self-inspection programs
 
-### Orchestrator Agent
-- Query routing and agent selection
-- Response synthesis and formatting
-- Cross-agent coordination
-- Output type determination
+### Regulatory Audits
+- FDA inspection preparation
+- EU GMP compliance
+- ICH guideline implementation
+- Global regulatory alignment
 
-### Web Scraper Agent
-- Due diligence report analysis
-- FDA warning letter processing
-- Manufacturing site assessment
-- Risk identification
+### CDMO Audits
+- Contract manufacturing oversight
+- Quality agreement compliance
+- Process transfer validation
+- Performance monitoring
 
-### Internal Audit Agent
-- Audit checklist generation
-- Compliance procedure guidance
-- Audit report creation
-- Regulatory interpretation
+## 📋 Checklist Templates
 
-### External Conference Agent
-- Conference data analysis
-- Date extraction and temporal analysis
-- Company and topic identification
-- Industry trend analysis
+### Sterile Manufacturing
+- Aseptic processing procedures
+- Environmental monitoring
+- Sterilization validation
+- Gowning and personnel qualification
 
-### Quality Systems Agent
-- SNC data analysis
-- Temporal quality event tracking
-- Company quality trend analysis
-- Quality system change monitoring
+### Oral Solid Dosage Forms
+- Process validation
+- Equipment qualification
+- Cross-contamination control
+- Cleaning validation
 
-### SOP Agent
-- SOP interpretation and explanation
-- Audit protocol creation
-- Procedure compliance guidance
-- SOP change tracking
+### Biotech/Biologics
+- Cell culture processes
+- Purification procedures
+- Viral safety testing
+- Process validation
 
-## 🔍 Advanced Features
+### Laboratory Operations
+- Method validation
+- Data integrity controls
+- OOS investigation procedures
+- Equipment calibration
 
-### Temporal Analysis
-- Track quality events over time
-- Identify trends and patterns
-- Historical compliance analysis
-- Future risk prediction
+### Warehouse Operations
+- Temperature control systems
+- Inventory management
+- Security and access controls
+- Material handling procedures
 
-### Cross-Agent Insights
-- Company-specific comprehensive analysis
-- Multi-source data synthesis
-- Relationship mapping
-- Risk assessment across domains
+## 🔍 Regulatory Knowledge Base
 
-### Graph Analytics
-- Company relationship networks
-- Event correlation analysis
-- Temporal event sequences
-- Risk propagation patterns
+The system includes comprehensive regulatory knowledge:
 
-## 🚨 Troubleshooting
+### FDA Regulations
+- 21 CFR Parts 210-211 (cGMP)
+- 21 CFR Part 11 (Electronic Records)
+- 21 CFR Parts 600-680 (Biologics)
+- FDA Guidance Documents
 
-### Common Issues
+### EU GMP
+- EU GMP Part I Chapters 1-9
+- Annex 1 (Sterile Manufacturing)
+- Annex 11 (Computerized Systems)
+- Annex 13 (Investigational Medicinal Products)
 
-1. **Database Connection Errors**
-   - Check Neo4j connection settings
-   - Verify Pinecone API key
-   - Ensure database services are running
+### International Standards
+- ICH Q7-Q10 Guidelines
+- WHO TRS 957 Annex 2
+- PIC/S PE 009-17
+- ISO 9001/13485
 
-2. **PDF Processing Errors**
-   - Install PyPDF2 correctly
-   - Check file permissions
-   - Verify PDF file integrity
+## 🚀 Advanced Features
 
-3. **Agent Import Errors**
-   - Ensure all `__init__.py` files exist
-   - Check Python path configuration
-   - Verify module dependencies
+### Live Audit Support
+- Real-time question answering during audits
+- Dynamic agenda adjustment
+- Immediate observation logging
+- Regulatory reference lookup
 
-### Performance Optimization
+### Delta Analysis
+- Track changes since last audit
+- SOP revision monitoring
+- Regulatory update impact assessment
+- Personnel and process change tracking
 
-- Use appropriate Pinecone index sizes
-- Optimize Neo4j queries with indexes
-- Implement caching for frequent queries
-- Monitor API rate limits
+### Health Assessment
+- 360° company quality status
+- Performance trend analysis
+- Risk factor identification
+- Compliance gap assessment
 
-## 🔮 Future Enhancements
+## 📈 Performance Metrics
 
-### Planned Features
-- Real-time document upload
-- Advanced graph analytics
-- Machine learning model integration
-- API endpoints for external integration
-- Mobile application support
+The system provides comprehensive analytics:
 
-### Scalability Improvements
-- Microservices architecture
-- Load balancing for agents
-- Distributed database setup
-- Caching layer implementation
+- **Observation Statistics**: Total, by risk level, by status
+- **Trend Analysis**: Performance over time
+- **Risk Distribution**: Critical/Major/Minor breakdown
+- **Agent Performance**: Response quality and relevance scores
+
+## 🔒 Security & Compliance
+
+- **Data Protection**: Secure handling of audit data
+- **Access Control**: Role-based permissions
+- **Audit Trail**: Complete activity logging
+- **Compliance**: Aligned with GMP and data integrity requirements
+
+## 🤝 Integration Capabilities
+
+### External Systems
+- Quality Management Systems (QMS)
+- Document Management Systems
+- Regulatory databases
+- Company intranets
+
+### Data Sources
+- FDA databases (483s, Warning Letters)
+- EMA regulatory information
+- Industry databases
+- Company-specific data
+
+## 🛠️ Development & Customization
+
+### Adding New Agents
+1. Create agent class inheriting from `BaseAgent`
+2. Implement required methods
+3. Add to orchestrator agent list
+4. Update configuration
+
+### Customizing Checklists
+1. Modify templates in `checklist_generator.py`
+2. Add new product modalities
+3. Update regulatory references
+4. Customize risk factors
+
+### Extending Reporting
+1. Add new report types to `audit_logger.py`
+2. Create custom formatting functions
+3. Integrate with external systems
+4. Add export formats
+
+## 📞 Support & Documentation
+
+For technical support or questions:
+- Review the code documentation
+- Check the example queries
+- Consult the configuration guide
+- Contact the development team
+
+## 🔄 Version History
+
+### v2.0 (Enhanced)
+- Smart Orchestrator Agent implementation
+- Risk-based prioritization system
+- Structured observation logging
+- Intelligent checklist generation
+- Comprehensive reporting capabilities
+
+### v1.0 (Original)
+- Basic orchestrator agent
+- Simple query processing
+- Basic agent coordination
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📞 Support
-
-For questions and support:
-- Create an issue in the repository
-- Contact the development team
-- Check the documentation
-
 ---
 
-**Built with ❤️ for pharmaceutical audit intelligence**
+**Note**: This system is designed to support audit professionals and should be used in conjunction with qualified auditor judgment and expertise. The AI provides intelligent assistance but does not replace professional audit judgment. 
