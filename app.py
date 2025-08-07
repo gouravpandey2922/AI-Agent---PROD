@@ -73,7 +73,7 @@ class AuditIntelligenceApp:
             page_title="AI Audit Intelligence",
             page_icon="📋",
             layout="wide",
-            initial_sidebar_state="expanded"
+            initial_sidebar_state="collapsed"
         )
         
         # Custom CSS for better performance and styling
@@ -146,58 +146,9 @@ class AuditIntelligenceApp:
         # Header
         st.markdown('<h1 class="main-header">AI Audit Intelligence</h1>', unsafe_allow_html=True)
         
-        # Sidebar
-        self._create_sidebar()
-        
-        # Main content
+        # Main content (sidebar removed)
         self._create_main_content()
         
-    def _create_sidebar(self):
-        """Create the simplified sidebar"""
-        st.sidebar.title("AI Agents")
-        
-        # Agent status display
-        st.sidebar.markdown("### Agent Status")
-        
-        # Initialize agent status in session state
-        if 'agent_status' not in st.session_state:
-            st.session_state.agent_status = {
-                'web_scraper': 'idle',
-                'internal_audit': 'idle', 
-                'external_conference': 'idle',
-                'quality_systems': 'idle',
-                'sop': 'idle'
-            }
-        
-        # Display agent status with icons
-        for agent_name, status in st.session_state.agent_status.items():
-            display_name = agent_name.replace('_', ' ').title()
-            
-            if status == 'idle':
-                st.sidebar.markdown(f"⭕ {display_name} Agent")
-            elif status == 'running':
-                st.sidebar.markdown(f"🔄 {display_name} Agent")
-            elif status == 'completed':
-                st.sidebar.markdown(f"✅ {display_name} Agent")
-            elif status == 'error':
-                st.sidebar.markdown(f"❌ {display_name} Agent")
-        
-        st.sidebar.markdown("---")
-        
-        # Document upload section (frontend only)
-        st.sidebar.markdown("### 📁 Document Upload")
-        st.sidebar.markdown("*(Coming Soon)*")
-        
-        uploaded_files = st.sidebar.file_uploader(
-            "Upload documents for analysis",
-            type=['pdf', 'csv', 'docx', 'txt'],
-            accept_multiple_files=True,
-            disabled=True
-        )
-        
-        if uploaded_files:
-            st.sidebar.info("Document processing will be available in a future update.")
-                    
     def _create_main_content(self):
         """Create the main content area"""
         
@@ -797,15 +748,46 @@ class AuditIntelligenceApp:
                 
                 # Delete document functionality
                 st.markdown("#### Delete Document")
+                
+                # Initialize session state for document selection per agent
+                if 'selected_doc_to_delete' not in st.session_state:
+                    st.session_state.selected_doc_to_delete = {}
+                
+                # Get document options
+                doc_options = [doc.get("id", "Unknown") for doc in documents]
+                doc_titles = {doc.get("id", "Unknown"): doc.get("metadata", {}).get("title", "Unknown") for doc in documents}
+                
+                # Get current selection for this agent
+                current_selection = st.session_state.selected_doc_to_delete.get(agent_name)
+                
+                # If the previously selected document no longer exists, reset to first option
+                if current_selection not in doc_options and doc_options:
+                    current_selection = doc_options[0]
+                    st.session_state.selected_doc_to_delete[agent_name] = current_selection
+                
+                # Determine the index for the selectbox
+                if current_selection in doc_options:
+                    selected_index = doc_options.index(current_selection)
+                else:
+                    selected_index = 0
+                
                 doc_to_delete = st.selectbox(
                     "Select document to delete",
-                    [doc.get("id", "Unknown") for doc in documents],
-                    format_func=lambda x: next((doc.get("metadata", {}).get("title", "Unknown") for doc in documents if doc.get("id") == x), "Unknown")
+                    doc_options,
+                    index=selected_index,
+                    format_func=lambda x: doc_titles.get(x, "Unknown"),
+                    key=f"delete_select_{agent_name}"
                 )
+                
+                # Update session state with current selection
+                st.session_state.selected_doc_to_delete[agent_name] = doc_to_delete
                 
                 if st.button("Delete Document", type="secondary"):
                     if self._delete_document(agent_name, doc_to_delete):
                         st.success("Document deleted successfully!")
+                        # Clear the selection after successful deletion
+                        if agent_name in st.session_state.selected_doc_to_delete:
+                            del st.session_state.selected_doc_to_delete[agent_name]
                         st.rerun()
                     else:
                         st.error("Failed to delete document.")
@@ -912,19 +894,22 @@ class AuditIntelligenceApp:
     def _upload_document_to_agent(self, agent_name: str, uploaded_file) -> bool:
         """Upload a document to an agent's knowledge base with chunking support"""
         try:
-            # Save uploaded file temporarily
+            # Save uploaded file with original name
             import tempfile
             import os
             
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                tmp_path = tmp_file.name
-            
-            # Process and upload the document with chunking
-            documents_processed = self.data_processor._process_file_with_chunking(tmp_path, agent_name, self.vector_db)
-            
-            # Clean up temporary file
-            os.unlink(tmp_path)
+            # Create a temporary directory to preserve the original filename
+            with tempfile.TemporaryDirectory() as temp_dir:
+                # Use the original filename
+                original_filename = uploaded_file.name
+                temp_path = os.path.join(temp_dir, original_filename)
+                
+                # Write the file with original name
+                with open(temp_path, 'wb') as f:
+                    f.write(uploaded_file.getvalue())
+                
+                # Process and upload the document with chunking
+                documents_processed = self.data_processor._process_file_with_chunking(temp_path, agent_name, self.vector_db)
             
             if documents_processed > 0:
                 return True
