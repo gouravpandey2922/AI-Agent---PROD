@@ -197,7 +197,7 @@ class AuditIntelligenceApp:
     
     def _create_smart_audit_tab(self):
         """Create the Smart Audit AI tab"""
-        st.markdown("### 🤖 Smart Audit Orchestrator")
+        st.markdown("### 🤖 Health AI 360 Agent")
         st.markdown("Ask complex audit questions and get intelligent, risk-based responses.")
         
         # Query input
