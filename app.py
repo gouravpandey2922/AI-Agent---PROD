@@ -169,7 +169,7 @@ class AuditIntelligenceApp:
         
         # Create tabs for different functionalities
         tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-            "🤖 Smart Audit AI", 
+            "🤖 Health AI 360 Agent", 
             "📋 Checklist Generator", 
             "📝 Observation Logger", 
             "📊 Audit Reports",
