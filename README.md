@@ -6,7 +6,7 @@ The Smart Audit Orchestrator Agent is a comprehensive AI-powered audit intellige
 
 ## 🎯 Key Features
 
-### 🤖 Smart Audit Orchestrator Agent
+### 🤖 Health AI 360 Agent
 - **Virtual Lead Auditor Simulation**: Mimics qualified auditor expertise with 5+ years GMP experience
 - **Global Regulatory Knowledge**: Comprehensive understanding of FDA, EU GMP, ICH, WHO, and other global regulations
 - **Risk-Based Intelligence**: Dynamic prioritization using 🔥 Priority, ✅ Standard, ⚠️ Watchlist labels
